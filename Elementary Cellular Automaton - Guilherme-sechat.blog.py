@@ -36,6 +36,10 @@ class Rule:
     # Elementary cellular automata
     def regra1(self):
         # The middle term is set to be 1
+        # Parece que há uma falha aqui, porque o valor 1 é
+        # atribuído em cada iteração, sendo que isso era 
+        # para acontecer só na primeira, não é?
+        # O mesmo acontece no Modo 2.
         self.ca[int((2*size+2)/2)] = '1'
         ca_new = ['0']
         
