@@ -2,16 +2,17 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
+import sys, hashlib
+    
+def dec_to_any_base(n, base, width=0):
+    """Convert from decimal to any base and return an array.
+    
+    width : The minimum number of elements in the returned array,
+            with zero-padding if necessary.
+    """
 
-
-# Converting into ternary
-# https://www.codevscolor.com/python-convert-decimal-ternarybase-3/
-def find_ternary(b):
-    quotient = b/3
-    remainder = b%3
-    if quotient == 0: return ""
-    else: return find_ternary(int(quotient)) + str(int(remainder))
+    if n == 0 and width <= 0: return []
+    return dec_to_any_base(n//base, base, width-1) + [n%base]
 
 
 def cellular_automaton(rule=30, n=100, mode=1):
@@ -34,11 +35,12 @@ def cellular_automaton(rule=30, n=100, mode=1):
     if mode == 1:
         # Setting the state of the middle cell in the initial state.
         ca[0, ca.shape[1]//2] = 1     # // is floor division.
-        # Converting rule to binary.
-        x = '{0:08b}'.format(rule)
-        # Creating the next generation cell state table.
-        comb = {7: int(x[0]), 6: int(x[1]), 5: int(x[2]), 4: int(x[3]),
-                3: int(x[4]), 2: int(x[5]), 1: int(x[6]), 0: int(x[7])}
+        
+        # Converting rule to binary and
+        # creating the next generation cell state table.
+        # [::-1] reverses the list order.
+        comb = dec_to_any_base(rule, 2, 8)[::-1]
+        
         # In the iteration, multiplying the state of the three cells
         # by these values, we convert a number from binary to decimal.
         p1, p2 = 2, 4
@@ -46,15 +48,16 @@ def cellular_automaton(rule=30, n=100, mode=1):
     # If is Totalistic Cellular Automaton.
     else:
         ca[0, ca.shape[1]//2] = 1
-        # Converting rule to ternary.
-        x = find_ternary(rule).zfill(7)
-        comb = {6: int(x[0]), 5: int(x[1]), 4: int(x[2]), 3: int(x[3]),
-                2: int(x[4]), 1: int(x[5]), 0: int(x[6])}
+        
+        # Converting rule to ternary and
+        # creating the next generation cell state table.
+        comb = dec_to_any_base(rule, 3, 7)[::-1]
+        
         # In the iteration, multiplying the state of the three cells
         # by these values, we obtain the sum.
         p1, p2 = 1, 1
 
-    # The iteration that calculates the state of the cells.
+    # The iteration that finds the state of the cells.
     for i in range(n):
         for j in range(1, ca.shape[1]-1):
             index = ca[i, j-1]*p2 + ca[i, j]*p1 + ca[i, j+1]
@@ -83,6 +86,8 @@ else:
             'Automaton, from 0 to 2187: '))
 
 ca = cellular_automaton(rule, size, mode)
+
+#print (hashlib.md5(ca.tostring()).hexdigest())
 
 fig, ax = plt.subplots(1, 1, dpi=120)
 ax.imshow(ca, cmap=plt.cm.Greys, interpolation='nearest')
